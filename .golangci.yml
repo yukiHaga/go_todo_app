@@ -1,0 +1,36 @@
+linters-settings:
+  govet:
+    check-shadowing: false
+  gocyclo:
+    min-complexity: 30
+  misspell:
+    locale: US
+
+linters:
+  # dusabke-allは全てのlinterを無効にする
+  disable-all: true
+
+  # enableは、指定したlinterを有効にする
+  enable:
+    # Goimports は gofmt が行うすべてのことを行います。さらに、未使用のインポートをチェックする
+    - goimports
+    # 使用していない関数や変数を報告します
+    - deadcode
+    # エラーの戻り値が確認されていない際に報告を行います。
+    - errcheck
+    # cognitive complexityを計算して設定値よりcognitive complexityが高くなっている箇所を報告します。
+    - gocognit
+    # バグ、パフォーマンス、スタイルの問題をチェックする多くの診断を提供。
+    - gocritic
+    # cyclomatic complexityを計算して設定値よりcyclomatic complexityが高くなっている箇所を報告します。
+    - gocyclo
+    # GofmtはコードがGofmt化されているかどうかをチェックします
+    - gofmt
+    # Goのソースコードを検査し、引数が書式文字列と一致していないPrintf呼び出しなど、疑わしい構文を報告します。
+    - govet
+    # スペルを間違えている箇所を検出します。固有名詞をスペルが違うと判定することがあるので注意が必要
+    - misspell
+    # 複数の項目をチェックする
+    - staticcheck
+    # 関数やif, forなどの最初や最後に不要な改行がないかを確認します
+    - whitespace

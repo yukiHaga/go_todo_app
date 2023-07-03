@@ -1,0 +1,25 @@
+name: golang-ci
+on:
+  pull_request:
+    paths:
+      - "**.go"
+      - .github/workflows/golangci.yml
+jobs:
+  golangci-lint:
+    # GitHub UI に表示されるジョブ名を設定する
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v3
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v2
+        with:
+          # 必須
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # オプショナル。 golangci-lint flags を指定します。(golangci-lint run --out-format=line-number <golangci_lint_flags>)
+          golangci_lint_flags: "--config=./.golangci.yml ./..."
+          # オプションナル。エラーが見つかった時のreviewdogの終了コード [true, false] デフォルトはfalseです。
+          fail_on_error: true
+          # オプション。reviewdogコマンド[github-pr-check,github-pr-review]の報告者。reviewdogの-reporterフラグと同じです。
+          reporter: "github-pr-review"
