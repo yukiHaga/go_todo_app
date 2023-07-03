@@ -1,0 +1,66 @@
+# 作業ディレクトリ
+# 以下のディレクトリはルート配下になければならない。
+# デフォルトのままだとWORKDIRに./tmp/mainという実行ファイルが作成され、ホットリロードされる度に実行ファイルが更新される
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# シェルコマンド。makeも使える
+cmd = "go build -o ./tmp/main ."
+# バイナリファイルが `cmd` から得られる。
+bin = "tmp/main"
+
+# 80番ポートで起動するように、実行時引数を指定
+# バイナリをカスタマイズすることで、アプリを実行する際に環境変数を設定することができます。
+full_bin = "APP_ENV=dev APP_USER=air ./tmp/main 80"
+
+# これらのファイル名の拡張子を監視する。
+include_ext = ["go", "tpl", "tmpl", "html"]
+
+# # これらの拡張子やディレクトリは無視します。
+exclude_dir = ["assets", "tmp", "vendor"]
+
+# もし指定した場合は、これらのディレクトリを監視する。
+include_dir = []
+
+# 指定したファイルを除外する。
+exclude_file = []
+
+# 特定の正規表現に該当するものを除外します。
+exclude_regex = ["_test.go"]
+
+# trueなら更新していないファイルを除く
+exclude_unchanged = true
+
+# ディレクトリのシンボリックリンクをたどる
+follow_symlink = true
+
+# このログファイルはtmp_dirに置かれる。
+log = "air.log"
+
+# ファイルが変更されるたびにビルドをトリガーする必要はない。
+delay = 1000 # ms
+
+# ビルドエラーが発生した場合、古いバイナリの実行を停止する。
+stop_on_error = true
+
+# プロセスを kill する前に割り込みシグナルを送信する (windows はこの機能をサポートしていません)
+send_interrupt = false
+
+# 割り込み信号送信後の遅延時間
+kill_deploy = 500 # ms
+
+[log]
+# ログの時間を表示するか
+time = false
+
+[color]
+# 各パーツの色をカスタマイズする。色が見つからない場合は、生のアプリのログを使用します。
+main = "magenta"
+watcher = "cyan"
+build = "yellow"
+runner = "green"
+
+[misc]
+# 終了時にtmpディレクトリを削除する
+clean_on_exit = true

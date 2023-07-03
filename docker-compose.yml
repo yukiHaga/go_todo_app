@@ -1,0 +1,14 @@
+version: "3.9"
+# サービスとは、全体を構成する一つ一つのコンテナのこと
+services:
+  app:
+    # 使うイメージを指定
+    image: gotodo
+    # イメージのビルドに関する設定を書く
+    build:
+      args:
+        - target=dev
+    volumes:
+      - .:/app
+    ports:
+      - "18000:80"
