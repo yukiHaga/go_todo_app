@@ -11,20 +11,22 @@ import (
 
 // なんのテストをやっているかわかりづらいね
 // コメントを書かないといけないのがだるい
-func TestRun(t *testing.T) {
-	// 根本的な対応をしたいので、一旦t.Skipメソッドでテストの実行をスキップする
-	t.Skip("リファクタリング中")
-
+func TestServerRun(t *testing.T) {
 	l, err := net.Listen("tcp", "localhost:0")
 	// リスナーの生成に失敗しているかを確認
 	if err != nil {
 		t.Fatalf("failed to listen port %v", err)
 	}
+
 	ctx, cancel := context.WithCancel(context.Background())
+	mux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello, %s", r.URL.Path[1:])
+	})
 
 	errCh := make(chan error)
 	go func() {
-		err := run(ctx)
+		s := NewServer(l, mux)
+		err := s.Run(ctx)
 		errCh <- err
 	}()
 

@@ -10,9 +10,9 @@ cmd = "go build -o ./tmp/main ."
 # バイナリファイルが `cmd` から得られる。
 bin = "tmp/main"
 
-# 80番ポートで起動するように、実行時引数を指定
+# 80番ポートで起動するように、実行時引数を指定していた
 # バイナリをカスタマイズすることで、アプリを実行する際に環境変数を設定することができます。
-full_bin = "APP_ENV=dev APP_USER=air ./tmp/main 80"
+full_bin = "APP_ENV=dev APP_USER=air ./tmp/main"
 
 # これらのファイル名の拡張子を監視する。
 include_ext = ["go", "tpl", "tmpl", "html"]

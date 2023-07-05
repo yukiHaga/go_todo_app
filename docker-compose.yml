@@ -8,7 +8,13 @@ services:
     build:
       args:
         - target=dev
+    # Composeファイルのenvironment属性を使って、サービスのコンテナに環境変数を設定できます。
+    # docker run -e VARIABLE=VALUE ... と同じように動作します。
+    environment:
+      TODO_ENV: dev
+      APP_PORT: 8080
     volumes:
       - .:/app
     ports:
-      - "18000:80"
+      # ホスト側の18000がコンテナの8080に対応している
+      - "18000:8080"

@@ -1,6 +1,7 @@
 name: golang-ci
 on:
   pull_request:
+    # プルリクエストが作られた際、パスフィルタのパターンにマッチにするファイルが一つでもあればワークフローは実行される
     paths:
       - "**.go"
       - .github/workflows/golangci.yml
