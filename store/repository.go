@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -100,3 +101,12 @@ var (
 type Repository struct {
 	Clocker clock.Clocker
 }
+
+const (
+	// ErrCodeMySQLDuplicateEntryはMySQL系のDUPLICATEエラーコード
+	ErrCodeMySQLDuplicateEntry = 1062
+)
+
+var (
+	ErrAlreadyEntry = errors.New("duplicate entry")
+)

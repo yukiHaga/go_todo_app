@@ -9,6 +9,7 @@ import (
 	"github.com/yukiHaga/go_todo_app/clock"
 	"github.com/yukiHaga/go_todo_app/config"
 	"github.com/yukiHaga/go_todo_app/handler"
+	"github.com/yukiHaga/go_todo_app/service"
 	"github.com/yukiHaga/go_todo_app/store"
 )
 
@@ -36,13 +37,26 @@ func NewMux(ctx context.Context, cfg *config.Config) (http.Handler, func(), erro
 		return nil, cleanup, err
 	}
 
-	r := store.Repository{Clocker: clock.RealClocker{}}
-	addTaskHandler := &handler.AddTask{DB: db, Repo: r, Validator: v}
+	r := &store.Repository{Clocker: clock.RealClocker{}}
+	// ここで依存性を注入している
+	addTaskHandler := &handler.AddTask{
+		Service:   &service.AddTask{DB: db, Repo: r},
+		Validator: v,
+	}
 	// ハンドラーのハンドラーファンクションを登録する
 	mux.Post("/tasks", addTaskHandler.ServeHTTP)
 
-	listTasksHandler := &handler.ListTasks{DB: db, Repo: r}
+	listTasksHandler := &handler.ListTasks{
+		Service: &service.ListTasks{DB: db, Repo: r},
+	}
 	mux.Get("/tasks", listTasksHandler.ServeHTTP)
+
+	// ここは依存性を注入している
+	registerUserHandler := &handler.RegisterUser{
+		Service:   &service.RegisterUser{DB: db, Repo: r},
+		Validator: v,
+	}
+	mux.Post("/register", registerUserHandler.ServeHTTP)
 
 	return mux, cleanup, nil
 }

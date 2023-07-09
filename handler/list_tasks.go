@@ -2,15 +2,13 @@ package handler
 
 import (
 	"net/http"
-
-	"github.com/jmoiron/sqlx"
-	"github.com/yukiHaga/go_todo_app/store"
 )
 
 type ListTasks struct {
 	// Store *store.TaskStore
-	DB   *sqlx.DB
-	Repo store.Repository
+	// DB   *sqlx.DB
+	// Repo store.Repository
+	Service ListTasksService
 }
 
 // func NewListTasks() *ListTasks {
@@ -22,7 +20,9 @@ type ListTasks struct {
 // SeerveHTTPメソッドを満たすことで、AddTaskがHandlerインターフェースを満たすことになる
 func (listTasks *ListTasks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	tasks, err := listTasks.Repo.ListTasks(ctx, listTasks.DB)
+	// リストタスクハンドラーはDBとRepositoryに依存している必要があったけど、サービスだけに依存すれば良くなった
+	// tasks, err := listTasks.Repo.ListTasks(ctx, listTasks.DB)
+	tasks, err := listTasks.Service.ListTasks(ctx)
 	if err != nil {
 		RespondJson(ctx, w, &ErrResponse{
 			Message: err.Error(),

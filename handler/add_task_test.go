@@ -2,13 +2,14 @@ package handler
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/yukiHaga/go_todo_app/entity"
-	"github.com/yukiHaga/go_todo_app/store"
 	"github.com/yukiHaga/go_todo_app/testutil"
 )
 
@@ -57,16 +58,22 @@ func TestAddTask(t *testing.T) {
 				bytes.NewReader(testutil.LoadFile(t, c.reqFile)),
 			)
 
+			// サービスのモックを作成
+			moq := &AddTaskServiceMock{}
+			moq.AddTaskFunc = func(ctx context.Context, title string) (*entity.Task, error) {
+				if c.want.status == http.StatusOK {
+					return &entity.Task{ID: 1}, nil
+				}
+				return nil, errors.New("error from mock")
+			}
+
 			// *ResponseRecorder型の値をServeHTTP関数に渡した後にResultメソッドを実行すると、
 			// クライアントが受け取るレスポンス内容が含まれるhttp.Response型の値を取得できる
 			// この処理はハンドラーに定義してある関数を自分で呼び出しているだけか
 			sut := AddTask{
-				Store: &store.TaskStore{
-					Tasks: map[entity.TaskID]*entity.Task{},
-				},
+				Service:   moq,
 				Validator: validator.New(),
 			}
-			sut := NewAddTask()
 			sut.ServeHTTP(w, r)
 			resp := w.Result()
 			testutil.AssertResponse(t, resp, c.want.status, testutil.LoadFile(t, c.want.rspFile))
