@@ -19,6 +19,27 @@ jobs:
     # Ubuntu Linux ランナーの最新バージョンで実行されるようにジョブを構成する。
     # これは、ジョブが GitHub によってホストされている新しい仮想マシンで実行されるということ
     runs-on: ubuntu-latest
+    # GitHub ActionsのワークフローでDBに接続してテストを行うには、GitHub Actionsのサービスコンテナを使う。
+    # このサービスコンテナはただのDockerコンテナである
+    services:
+      mysql:
+        image: mysql:8
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 202
+          --health-timeout 10s
+          --health-retries 10
+        # ジョブをランナーマシン上で動かしている場合、サービスコンテナはランナーマシンに対してデフォルトではポートを公開していない。
+        # ジョブがDockerコンテナ内で実行されるなら、ポートをホストあるいはサービスコンテナにマップする必要はない。
+        # ジョブがランナーマシン上で直接実行されるなら、必要なサービスコンテナのポートはホストランナーマシンのポートにマップする必要がある。
+        # DBのポートとホストのポートをマッピングしておく
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: todo
+          MYSQL_USER: todo
+          MYSQL_PASSWORD: todo
     # ジョブで実行されるすべてのステップをグループ化している
     # ステップとは アクション or シェルスクリプトのどちらかってことか。
     # このセクションで入れ子になった各項目は、個別のアクションまたはシェル スクリプトである。
@@ -30,6 +51,11 @@ jobs:
         go-version: ">=1.18"
     # actions/checkout@v3は、リポジトリからソースコードを取得するアクション
     - uses: actions/checkout@v3
+    # テストを行う前にDBマイグレーションを行う
+    # こうすることで、DBのテストでエラーが起きたりしない
+    - run:
+        go intall github.com/k0kubun/sqldef/cmd/mysqldef@latest
+        mysqldef -u todo -p todo -h 127.0.0.1 -p 3306 todo < ./_tools/mysql/schema.sql
     # 、go test ./...は、カレントディレクトリとそのサブディレクトリ内のすべてのテストを実行するコマンド。
     # ./...は、現在のディレクトリとそのサブディレクトリ内のすべてのパッケージをテスト対象にすることを意味する。
     # -coverprofile=coverage.outは、テストのカバレッジ情報をファイルに保存するためのフラグである。

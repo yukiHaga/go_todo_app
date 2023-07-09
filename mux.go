@@ -1,6 +1,16 @@
 package main
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
+	"github.com/yukiHaga/go_todo_app/clock"
+	"github.com/yukiHaga/go_todo_app/config"
+	"github.com/yukiHaga/go_todo_app/handler"
+	"github.com/yukiHaga/go_todo_app/store"
+)
 
 // 戻り値を*http.ServeMux型の値ではなくて、
 // http.HandlerはServeHTTPを実装していればOK
@@ -8,13 +18,31 @@ import "net/http"
 // 戻り値を*http.ServeMux型ではなくてhttp.Handlerにしておくことで、内部実装に依存しない関数シグネチャになる
 // NewMux関数が返すルーティングでは、HTTPサーバーが稼働中かを確認するための/healthエンドポイントを一つ宣言しておく
 // コンテナ実行環境の多くでは、コンテナをいつ再起動するかの判断条件として指定されたエンドポイントをポーリングするルールがある
-func NewMux() http.Handler {
-	// マルチプレクサを作成
-	mux := http.NewServeMux()
-	// mux.HandleFuncメソッドで、マルチプレクサにURLと対応する処理(ハンドラ)を登録する
+// NewMuxを定義することで、muxライブラリの実装を内部に隠蔽できる。他のファイルのコードはNewMuxと依存することになるので、
+// muxと直接依存することがなくなる。その結果、muxライブラリの変更がしやすくなる。muxライブラリが直接他のファイルのコードと依存していたら、
+// muxライブラリを変更するのがとてもめんどくさい。今回の場合は変更が一箇所に集中できてる
+func NewMux(ctx context.Context, cfg *config.Config) (http.Handler, func(), error) {
+	mux := chi.NewRouter()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Write([]byte(`{"status": "ok"}`))
 	})
-	return mux
+
+	v := validator.New()
+
+	// このNewを使うことで、クライアント側でmysqlを指定するってことは一応なくなるのか
+	db, cleanup, err := store.New(ctx, cfg)
+	if err != nil {
+		return nil, cleanup, err
+	}
+
+	r := store.Repository{Clocker: clock.RealClocker{}}
+	addTaskHandler := &handler.AddTask{DB: db, Repo: r, Validator: v}
+	// ハンドラーのハンドラーファンクションを登録する
+	mux.Post("/tasks", addTaskHandler.ServeHTTP)
+
+	listTasksHandler := &handler.ListTasks{DB: db, Repo: r}
+	mux.Get("/tasks", listTasksHandler.ServeHTTP)
+
+	return mux, cleanup, nil
 }

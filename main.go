@@ -27,7 +27,11 @@ func run(ctx context.Context) error {
 		log.Fatalf("failed to listen port %d: %v", cfg.AppPort, err)
 	}
 
-	mux := NewMux()
+	mux, cleanup, err := NewMux(ctx, cfg)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
 	s := NewServer(l, mux)
 	return s.Run(ctx)
 }

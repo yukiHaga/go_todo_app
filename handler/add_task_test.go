@@ -66,6 +66,7 @@ func TestAddTask(t *testing.T) {
 				},
 				Validator: validator.New(),
 			}
+			sut := NewAddTask()
 			sut.ServeHTTP(w, r)
 			resp := w.Result()
 			testutil.AssertResponse(t, resp, c.want.status, testutil.LoadFile(t, c.want.rspFile))
