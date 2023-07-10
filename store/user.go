@@ -31,3 +31,14 @@ func (r *Repository) RegisterUser(ctx context.Context, db Execer, u *entity.User
 	u.ID = entity.UserID(id)
 	return nil
 }
+
+func (r *Repository) GetUser(ctx context.Context, db Queryer, name string) (*entity.User, error) {
+	u := &entity.User{}
+	sql := `SELECT id, name, password, role, created_at, updated_at FROM users WHERE name = ?`
+	// GetContextを使うと、クエリの実行結果が設定された構造体を簡単に取得できる
+	if err := db.GetContext(ctx, u, sql, name); err != nil {
+		return nil, err
+	}
+
+	return u, nil
+}
